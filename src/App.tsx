@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { Hero } from './components/home/Hero';
@@ -10,51 +11,31 @@ import { About } from './pages/About';
 import { Contact } from './pages/Contact';
 
 function App() {
-  const [currentPage, setCurrentPage] = React.useState('home');
-
-  React.useEffect(() => {
-    const path = window.location.pathname;
-    const page = path === '/' ? 'home' : path.slice(1);
-    setCurrentPage(page);
-  }, []);
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return (
-          <>
-            <Hero />
-            <HomeAbout />
-            <Testimonials />
-          </>
-        );
-      case 'cars':
-        return <Cars />;
-      case 'tours':
-        return <Tours />;
-      case 'about':
-        return <About />;
-      case 'contact':
-        return <Contact />;
-      default:
-        return (
-          <>
-            <Hero />
-            <HomeAbout />
-            <Testimonials />
-          </>
-        );
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow">
-        {renderPage()}
-      </main>
-      <Footer />
-    </div>
+    <Router>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <Hero />
+                  <HomeAbout />
+                  <Testimonials />
+                </>
+              }
+            />
+            <Route path="/cars" element={<Cars />} />
+            <Route path="/tours" element={<Tours />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
