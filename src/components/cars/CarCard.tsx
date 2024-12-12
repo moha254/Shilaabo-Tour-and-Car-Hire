@@ -3,6 +3,8 @@ import { Car } from '../../types';
 import { Users, Gauge, Check } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { CarBookingForm } from './CarBookingForm';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 interface CarCardProps {
   car: Car;
@@ -11,9 +13,15 @@ interface CarCardProps {
 export function CarCard({ car }: CarCardProps) {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  const handleBooking = (formData: { [key: string]: string | boolean | number }) => {
-    // Here you would typically send the booking data to your backend
-    console.log('Car Booking:', { car, ...formData });
+  const handleBooking = async (formData: { [key: string]: string | boolean | number }) => {
+    try {
+      const response = await axios.post('http://localhost:5000/car-bookings', formData);
+      console.log('Booking successful:', response.data);
+      Swal.fire('Success', 'Your booking has been saved!', 'success');
+    } catch (error) {
+      console.error('Error saving booking:', error);
+      Swal.fire('Error', 'There was an error saving your booking. Please try again.', 'error');
+    }
     setIsBookingModalOpen(false);
   };
 

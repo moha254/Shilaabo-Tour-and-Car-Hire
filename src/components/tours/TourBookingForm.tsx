@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import jsPDF from 'jspdf';
 import { Tour } from '../../types';
 
 interface TourBookingFormProps {
@@ -28,47 +27,28 @@ export function TourBookingForm({ tour, onSubmit }: TourBookingFormProps) {
     if (formData.startDate && formData.name && formData.email && formData.phone) {
       Swal.fire('Booking Success!', 'Your tour booking has been processed successfully.', 'success');
       onSubmit(formData);
-      generatePDF();
+      redirectToWhatsApp();  // Redirect to WhatsApp after booking
     } else {
       Swal.fire('Error', 'Please fill out all required fields.', 'error');
     }
   };
 
-  const generatePDF = () => {
-    const pdf = new jsPDF();
-
-    // Add a logo with better styling for clarity and positioning
-    const logoUrl = '/img/logo.png'; // Replace with the actual path to your logo
-    const imgWidth = 40;
-    const imgHeight = 40;
-    pdf.addImage(logoUrl, 'PNG', 85, 10, imgWidth, imgHeight); // Centered horizontally at the top
-
-    // Add text below the logo
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(0, 51, 102); // Dark blue color for the text
-    pdf.text('Shilaabo Tour and Car Hire', 105, 55, { align: 'center' });
-
-    // Add a styled title to the document
-    pdf.setFontSize(18);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(0, 51, 102); // Dark blue color for the title
-    pdf.text('Tour Booking Confirmation', 105, 70, { align: 'center' });
-
-    // Booking details
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(0, 0, 0); // Black color for details
-    pdf.text(`Tour Name: ${tour.name}`, 10, 90);
-    pdf.text(`Start Date: ${formData.startDate}`, 10, 100);
-    pdf.text(`Participants: ${formData.participants}`, 10, 110);
-    pdf.text(`Name: ${formData.name}`, 10, 120);
-    pdf.text(`Email: ${formData.email}`, 10, 130);
-    pdf.text(`Phone: ${formData.phone}`, 10, 140);
-    pdf.text(`Special Requirements: ${formData.specialRequirements || 'None'}`, 10, 150);
-
-    // Save the PDF
-    pdf.save('tour-booking-confirmation.pdf');
+  const redirectToWhatsApp = () => {
+    const message = `
+      *Tour Booking Details*
+      *Tour Name:* ${tour.name}
+      *Start Date:* ${formData.startDate}
+      *Participants:* ${formData.participants}
+      *Name:* ${formData.name}
+      *Email:* ${formData.email}
+      *Phone:* ${formData.phone}
+      *Special Requirements:* ${formData.specialRequirements || 'None'}
+    `;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
