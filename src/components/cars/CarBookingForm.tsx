@@ -128,7 +128,7 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
 
   const redirectToWhatsApp = () => {
     const message = `
-      *Car Booking Details*
+      Hello, I would like to book a car with the following details:
       Car Model: ${car.model}
       Pickup Date: ${formData.pickupDate}
       Return Date: ${formData.returnDate}
