@@ -46,7 +46,7 @@ export function TourBookingForm({ tour, onSubmit }: TourBookingFormProps) {
     `;
     
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/+254722814942?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
   };

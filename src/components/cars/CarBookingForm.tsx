@@ -140,7 +140,7 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
       Phone: ${formData.phone}
     `;
 
-    const whatsappNumber = '+25472837410'; // Replace with your actual WhatsApp number
+    const whatsappNumber = '+254722814942'; // Replace with your actual WhatsApp number
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
     window.open(url, '_blank');
