@@ -1,7 +1,24 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export function Contact() {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // Display success message
+      Swal.fire('Message Sent!', 'Thank you for reaching out to us. We will get back to you soon.', 'success');
+
+      // Clear the form after successful submission
+      const form = e.target as HTMLFormElement;
+      form.reset();
+    } catch (error) {
+      // Display error message if submission fails
+      Swal.fire('Error', 'There was an error processing your message. Please try again.', 'error');
+      console.error('Error processing message:', error);
+    }
+  };
+
   return (
     <div className="pt-16 min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -9,7 +26,10 @@ export function Contact() {
           {/* Contact Form */}
           <div className="bg-white p-8 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Hidden input for Web3Forms access key */}
+              <input type="hidden" name="access_key" value="23516e32-48ec-41f4-96c2-79d9442d082a" />
+
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Name
@@ -17,6 +37,8 @@ export function Contact() {
                 <input
                   type="text"
                   id="name"
+                  name="name"
+                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
@@ -27,6 +49,8 @@ export function Contact() {
                 <input
                   type="email"
                   id="email"
+                  name="email"
+                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
@@ -37,6 +61,8 @@ export function Contact() {
                 <input
                   type="text"
                   id="subject"
+                  name="subject"
+                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
@@ -46,7 +72,9 @@ export function Contact() {
                 </label>
                 <textarea
                   id="message"
+                  name="message"
                   rows={4}
+                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 ></textarea>
               </div>
