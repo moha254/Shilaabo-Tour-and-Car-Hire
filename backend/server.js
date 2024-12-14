@@ -13,9 +13,25 @@ connectDB();
 
 const app = express();
 
-// Enable CORS for frontend requests
+// Enable CORS for all origins in development, or specific origins in production
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://shilaabo-tour-and-car-hire.vercel.app',
+  'https://shilaabo-car-hire.vercel.app'
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", // Vite's default port
+  origin: function(origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
