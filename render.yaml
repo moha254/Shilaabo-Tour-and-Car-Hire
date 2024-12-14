@@ -1,12 +1,17 @@
 services:
   - type: web
-    name: shilaabo-car-hire-backend
+    name: shilaabo-car-hire
     env: node
-    buildCommand: cd backend && npm install
+    buildCommand: |
+      npm install
+      npm run build
+      cd backend && npm install
     startCommand: cd backend && node server.js
     envVars:
       - key: MONGO_URI
         sync: false
       - key: PORT
         value: 8080
+      - key: VITE_API_URL
+        value: https://shilaabo-tour-and-car-hire.onrender.com/api
     autoDeploy: true
