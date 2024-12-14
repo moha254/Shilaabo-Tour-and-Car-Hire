@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
+const fs = require('fs');
 const connectDB = require("./config/db");
 const carBookingRoutes = require("./routes/carBookingRoutes");
 const tourBookingRoutes = require("./routes/tourBookingRoutes");
@@ -43,18 +44,51 @@ app.use(express.json());  // Parse incoming JSON requests
 app.use("/api/car-bookings", carBookingRoutes);
 app.use("/api/tour-bookings", tourBookingRoutes);
 
-// Serve static files from the dist directory
-const distPath = path.join(__dirname, 'dist');
-console.log('Looking for static files in:', distPath);
+// Find the dist directory
+const possibleDistPaths = [
+  path.join(__dirname, 'dist'),
+  path.join(__dirname, '../dist'),
+  path.join(process.cwd(), 'dist'),
+  path.join(process.cwd(), '../dist')
+];
 
-app.use(express.static(distPath));
+let distPath;
+for (const path of possibleDistPaths) {
+  console.log('Checking path:', path);
+  if (fs.existsSync(path)) {
+    distPath = path;
+    console.log('Found dist directory at:', distPath);
+    break;
+  }
+}
+
+if (!distPath) {
+  console.error('Could not find dist directory. Checked paths:', possibleDistPaths);
+} else {
+  // List contents of the dist directory
+  try {
+    const files = fs.readdirSync(distPath);
+    console.log('Contents of dist directory:', files);
+  } catch (error) {
+    console.error('Error reading dist directory:', error);
+  }
+}
+
+// Serve static files from the dist directory
+if (distPath) {
+  app.use(express.static(distPath));
+}
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
+  if (!distPath) {
+    return res.status(404).send('Frontend build not found. Please check deployment configuration.');
+  }
+
   const indexPath = path.join(distPath, 'index.html');
   console.log('Attempting to serve:', indexPath);
   
-  if (!require('fs').existsSync(indexPath)) {
+  if (!fs.existsSync(indexPath)) {
     console.error('index.html not found at:', indexPath);
     return res.status(404).send('Frontend build not found. Please check deployment configuration.');
   }
@@ -68,13 +102,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('Static files being served from:', distPath);
-  // List contents of the dist directory
-  const fs = require('fs');
-  try {
-    const files = fs.readdirSync(distPath);
-    console.log('Contents of dist directory:', files);
-  } catch (error) {
-    console.error('Error reading dist directory:', error);
+  if (distPath) {
+    console.log('Static files being served from:', distPath);
+  } else {
+    console.log('Warning: No static files are being served!');
   }
 });
