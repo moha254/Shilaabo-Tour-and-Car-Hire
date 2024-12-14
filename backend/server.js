@@ -54,82 +54,71 @@ app.get('/api/health', (req, res) => {
 app.use("/api/car-bookings", carBookingRoutes);
 app.use("/api/tour-bookings", tourBookingRoutes);
 
-// Function to check and log directory contents
-const checkDirectory = (dirPath) => {
-  console.log(`Checking directory: ${dirPath}`);
-  try {
-    const stats = fs.statSync(dirPath);
-    console.log(`Directory exists: ${stats.isDirectory()}`);
-    const contents = fs.readdirSync(dirPath);
-    console.log(`Contents of ${dirPath}:`, contents);
-    return true;
-  } catch (error) {
-    console.log(`Error checking directory ${dirPath}:`, error.message);
-    return false;
+// Function to find the dist directory
+const findDistDirectory = () => {
+  const possiblePaths = [
+    path.join(__dirname, 'dist'),
+    path.join(__dirname, '../dist'),
+    path.join(process.cwd(), 'dist'),
+    path.join(process.cwd(), '../dist')
+  ];
+
+  console.log('Looking for dist directory in:');
+  possiblePaths.forEach(p => console.log('- ' + p));
+
+  for (const p of possiblePaths) {
+    try {
+      const stats = fs.statSync(p);
+      if (stats.isDirectory()) {
+        console.log('Found dist directory at:', p);
+        return p;
+      }
+    } catch (error) {
+      console.log(`Directory ${p} not found:`, error.message);
+    }
   }
+  return null;
 };
 
-// Find the dist directory
-const possibleDistPaths = [
-  path.join(__dirname, 'dist'),
-  path.join(__dirname, '../dist'),
-  path.join(process.cwd(), 'dist'),
-  path.join(process.cwd(), '../dist')
-];
-
-console.log('Current working directory:', process.cwd());
-console.log('__dirname:', __dirname);
-
-let distPath;
-for (const pathToCheck of possibleDistPaths) {
-  if (checkDirectory(pathToCheck)) {
-    distPath = pathToCheck;
-    console.log('Found dist directory at:', distPath);
-    break;
-  }
-}
-
-if (!distPath) {
-  console.error('Could not find dist directory in any of these locations:', possibleDistPaths);
-} else {
-  console.log('Using dist directory:', distPath);
+// Serve static files
+const distPath = findDistDirectory();
+if (distPath) {
+  console.log('Serving static files from:', distPath);
   app.use(express.static(distPath));
+
+  // Serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+
+    const indexPath = path.join(distPath, 'index.html');
+    console.log('Serving index.html from:', indexPath);
+    
+    try {
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        console.error('index.html not found at:', indexPath);
+        res.status(404).send('Frontend build not found');
+      }
+    } catch (error) {
+      console.error('Error serving index.html:', error);
+      res.status(500).send('Error serving application');
+    }
+  });
+} else {
+  console.error('Could not find dist directory');
 }
 
-// Handle React routing, return all requests to React app
-app.get('*', (req, res) => {
-  if (!distPath) {
-    return res.status(404).send('Frontend build not found. Please check deployment configuration.');
-  }
-
-  const indexPath = path.join(distPath, 'index.html');
-  console.log('Request path:', req.path);
-  console.log('Attempting to serve:', indexPath);
-  
-  try {
-    const indexExists = fs.existsSync(indexPath);
-    console.log('index.html exists:', indexExists);
-    if (!indexExists) {
-      console.error('index.html not found at:', indexPath);
-      return res.status(404).send('Frontend build not found. Please check deployment configuration.');
-    }
-    
-    res.sendFile(indexPath);
-  } catch (error) {
-    console.error('Error serving index.html:', error);
-    res.status(500).send('Error serving application');
-  }
-});
-
-// Error handler middleware for handling errors globally
+// Error handler middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   if (distPath) {
     console.log('Static files being served from:', distPath);
-    checkDirectory(distPath);
   } else {
     console.log('Warning: No static files are being served!');
   }

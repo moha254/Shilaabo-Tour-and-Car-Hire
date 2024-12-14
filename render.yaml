@@ -3,11 +3,18 @@ services:
     name: shilaabo-car-hire
     env: node
     buildCommand: |
+      # Install backend dependencies
       cd backend && npm install
       cd ..
+      
+      # Install frontend dependencies and build
       npm install
       npm run build
-      cp -r dist backend/
+      
+      # Copy dist to backend and verify
+      mkdir -p backend/dist
+      cp -r dist/* backend/dist/
+      ls -la backend/dist
     startCommand: cd backend && node server.js
     envVars:
       - key: MONGO_URI
