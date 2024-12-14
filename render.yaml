@@ -5,10 +5,10 @@ services:
     buildCommand: |
       npm install
       npm run build
-      mv dist backend/
+      cp -r dist backend/
       cd backend
       npm install
-    startCommand: cd backend && node server.js
+    startCommand: node backend/server.js
     envVars:
       - key: MONGO_URI
         sync: false

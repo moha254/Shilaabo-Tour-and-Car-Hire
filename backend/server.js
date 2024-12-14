@@ -39,16 +39,27 @@ app.use(cors({
 
 app.use(express.json());  // Parse incoming JSON requests
 
-// Routes for car bookings and tour bookings
+// API routes
 app.use("/api/car-bookings", carBookingRoutes);
 app.use("/api/tour-bookings", tourBookingRoutes);
 
 // Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, 'dist')));
+const distPath = path.join(__dirname, 'dist');
+console.log('Looking for static files in:', distPath);
+
+app.use(express.static(distPath));
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  const indexPath = path.join(distPath, 'index.html');
+  console.log('Attempting to serve:', indexPath);
+  
+  if (!require('fs').existsSync(indexPath)) {
+    console.error('index.html not found at:', indexPath);
+    return res.status(404).send('Frontend build not found. Please check deployment configuration.');
+  }
+  
+  res.sendFile(indexPath);
 });
 
 // Error handler middleware for handling errors globally
@@ -57,5 +68,13 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('Static files being served from:', path.join(__dirname, 'dist'));
+  console.log('Static files being served from:', distPath);
+  // List contents of the dist directory
+  const fs = require('fs');
+  try {
+    const files = fs.readdirSync(distPath);
+    console.log('Contents of dist directory:', files);
+  } catch (error) {
+    console.error('Error reading dist directory:', error);
+  }
 });
