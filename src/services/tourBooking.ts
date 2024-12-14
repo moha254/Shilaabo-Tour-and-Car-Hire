@@ -1,44 +1,30 @@
-import api from './api';
+import axios from 'axios';
 
-export interface TourBooking {
-  _id?: string;
-  tourName: string;
-  name: string;
-  email: string;
-  phone: string;
-  startDate: Date;
-  participants: number;
-  specialRequirements?: string;
-}
+const API_URL = 'http://localhost:5001/api';
 
 export const tourBookingService = {
-  createBooking: async (booking: Omit<TourBooking, '_id'>) => {
-    const response = await api.post('/tour-bookings', booking);
-    return response.data;
+  bookTour: async (bookingData: {
+    tourId: string;
+    date: string;
+    numberOfPeople: number;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+  }) => {
+    try {
+      const response = await axios.post(`${API_URL}/tour-bookings`, bookingData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  getAllBookings: async () => {
-    const response = await api.get('/tour-bookings');
-    return response.data;
-  },
-
-  getBookingById: async (id: string) => {
-    const response = await api.get(`/tour-bookings/${id}`);
-    return response.data;
-  },
-
-  updateBooking: async (id: string, booking: Partial<TourBooking>) => {
-    const response = await api.put(`/tour-bookings/${id}`, booking);
-    return response.data;
-  },
-
-  deleteBooking: async (id: string) => {
-    const response = await api.delete(`/tour-bookings/${id}`);
-    return response.data;
-  },
-
-  getBookingsByEmail: async (email: string) => {
-    const response = await api.get(`/tour-bookings/user/${email}`);
-    return response.data;
-  },
+  getTourBookings: async (tourId: string) => {
+    try {
+      const response = await axios.get(`${API_URL}/tour-bookings/${tourId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };

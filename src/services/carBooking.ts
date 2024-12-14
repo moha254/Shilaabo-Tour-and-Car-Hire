@@ -1,48 +1,44 @@
-import api from './api';
+import axios from 'axios';
 
-export interface CarBooking {
-  _id?: string;
-  name: string;
-  email: string;
-  phone: string;
-  pickupDate: Date;
-  returnDate: Date;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+interface BookingData {
+  pickupDate: string;
+  returnDate: string;
   pickupTime: string;
   returnTime: string;
   driverRequired: boolean;
+  name: string;
+  email: string;
+  phone: string;
   carModel: string;
-  rentalDuration: number;
   price: number;
+  totalPrice: number;
+  rentalDuration: number;
 }
 
-export const carBookingService = {
-  createBooking: async (booking: Omit<CarBooking, '_id'>) => {
-    const response = await api.post('/car-bookings', booking);
-    return response.data;
-  },
+class CarBookingService {
+  private apiUrl = `${API_BASE_URL}/api/bookings`;
 
-  getAllBookings: async () => {
-    const response = await api.get('/car-bookings');
-    return response.data;
-  },
+  async createBooking(bookingData: BookingData) {
+    try {
+      const response = await axios.post(this.apiUrl, bookingData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      throw error;
+    }
+  }
 
-  getBookingById: async (id: string) => {
-    const response = await api.get(`/car-bookings/${id}`);
-    return response.data;
-  },
+  async getBookings() {
+    try {
+      const response = await axios.get(this.apiUrl);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      throw error;
+    }
+  }
+}
 
-  updateBooking: async (id: string, booking: Partial<CarBooking>) => {
-    const response = await api.put(`/car-bookings/${id}`, booking);
-    return response.data;
-  },
-
-  deleteBooking: async (id: string) => {
-    const response = await api.delete(`/car-bookings/${id}`);
-    return response.data;
-  },
-
-  getBookingsByEmail: async (email: string) => {
-    const response = await api.get(`/car-bookings/user/${email}`);
-    return response.data;
-  },
-};
+export const carBookingService = new CarBookingService();

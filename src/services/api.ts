@@ -30,25 +30,48 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor for debugging
 api.interceptors.response.use(
   response => {
-    console.log(`Response from ${response.config.url}:`, {
-      status: response.status,
-      data: response.data
-    });
+    console.log('Response:', response.data);
     return response;
   },
   error => {
-    console.error('API Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
+    console.error('Response error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
+
+// Car Booking API calls
+export const createCarBooking = async (bookingData: any) => {
+  const response = await api.post('/bookings', bookingData);
+  return response.data;
+};
+
+export const getCarBookings = async () => {
+  const response = await api.get('/bookings');
+  return response.data;
+};
+
+export const getCarBookingById = async (id: string) => {
+  const response = await api.get(`/bookings/${id}`);
+  return response.data;
+};
+
+// Tour Booking API calls
+export const createTourBooking = async (bookingData: any) => {
+  const response = await api.post('/tours', bookingData);
+  return response.data;
+};
+
+export const getTourBookings = async () => {
+  const response = await api.get('/tours');
+  return response.data;
+};
+
+export const getTourBookingById = async (id: string) => {
+  const response = await api.get(`/tours/${id}`);
+  return response.data;
+};
 
 export default api;

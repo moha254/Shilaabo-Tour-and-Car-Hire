@@ -1,117 +1,81 @@
-const CarBooking = require("../models/carBookingModel");
+const CarBooking = require('../models/carBookingModel');
 
-const createCarBooking = async (req, res, next) => {
+// Create a new car booking
+const createCarBooking = async (req, res) => {
   try {
-    console.log('Received car booking request with body:', req.body);
-    
-    // Validate required fields
-    const requiredFields = ['name', 'email', 'phone', 'pickupDate', 'returnDate', 'pickupTime', 'returnTime', 'carModel', 'price', 'rentalDuration'];
-    const missingFields = requiredFields.filter(field => !req.body[field]);
-    
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        message: 'Missing required fields',
-        fields: missingFields
-      });
-    }
-
-    // Validate dates
-    const pickupDate = new Date(req.body.pickupDate);
-    const returnDate = new Date(req.body.returnDate);
-    
-    if (isNaN(pickupDate.getTime()) || isNaN(returnDate.getTime())) {
-      return res.status(400).json({
-        message: 'Invalid date format',
-        details: 'Dates must be in YYYY-MM-DD format'
-      });
-    }
-
-    if (returnDate <= pickupDate) {
-      return res.status(400).json({
-        message: 'Invalid date range',
-        details: 'Return date must be after pickup date'
-      });
-    }
-
-    // Create booking
-    const newCarBooking = new CarBooking(req.body);
-    console.log('Created new car booking instance:', newCarBooking);
-    
-    const savedBooking = await newCarBooking.save();
-    console.log('Successfully saved car booking:', savedBooking);
-    
+    const booking = new CarBooking(req.body);
+    const savedBooking = await booking.save();
     res.status(201).json(savedBooking);
-  } catch (err) {
-    console.error('Error in createCarBooking:', {
-      name: err.name,
-      message: err.message,
-      stack: err.stack,
-      validationErrors: err.errors
-    });
-    next(err);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
 
-const getAllCarBookings = async (req, res, next) => {
+// Get all car bookings
+const getAllCarBookings = async (req, res) => {
   try {
-    const bookings = await CarBooking.find().sort({ createdAt: -1 });
-    res.status(200).json(bookings);
-  } catch (err) {
-    next(err);
+    const bookings = await CarBooking.find();
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-const getCarBookingById = async (req, res, next) => {
+// Get a specific car booking by ID
+const getCarBookingById = async (req, res) => {
   try {
     const booking = await CarBooking.findById(req.params.id);
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ message: 'Booking not found' });
     }
-    res.status(200).json(booking);
-  } catch (err) {
-    next(err);
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-const updateCarBooking = async (req, res, next) => {
+// Update a car booking
+const updateCarBooking = async (req, res) => {
   try {
     const booking = await CarBooking.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
-      { new: true, runValidators: true }
+      req.body,
+      { new: true }
     );
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ message: 'Booking not found' });
     }
-    res.status(200).json(booking);
-  } catch (err) {
-    next(err);
+    res.json(booking);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
 
-const deleteCarBooking = async (req, res, next) => {
+// Delete a car booking
+const deleteCarBooking = async (req, res) => {
   try {
     const booking = await CarBooking.findByIdAndDelete(req.params.id);
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ message: 'Booking not found' });
     }
-    res.status(200).json({ message: "Booking deleted successfully" });
-  } catch (err) {
-    next(err);
+    res.json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-const getCarBookingsByEmail = async (req, res, next) => {
+// Get bookings by email
+const getCarBookingsByEmail = async (req, res) => {
   try {
-    const bookings = await CarBooking.find({ email: req.params.email }).sort({ createdAt: -1 });
-    res.status(200).json(bookings);
-  } catch (err) {
-    next(err);
+    const bookings = await CarBooking.find({ customerEmail: req.params.email });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { 
-  createCarBooking, 
+module.exports = {
+  createCarBooking,
   getAllCarBookings,
   getCarBookingById,
   updateCarBooking,

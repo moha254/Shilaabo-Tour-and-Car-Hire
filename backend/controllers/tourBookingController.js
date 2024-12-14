@@ -1,70 +1,83 @@
-const TourBooking = require("../models/tourBookingModel");
+const TourBooking = require('../models/tourBookingModel');
 
-const createTourBooking = async (req, res, next) => {
+// Create a new tour booking
+const createTourBooking = async (req, res) => {
   try {
-    const newTourBooking = new TourBooking(req.body);
-    const savedBooking = await newTourBooking.save();
+    const booking = new TourBooking(req.body);
+    const savedBooking = await booking.save();
     res.status(201).json(savedBooking);
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error('Error creating tour booking:', error);
+    res.status(400).json({ message: error.message });
   }
 };
 
-const getAllTourBookings = async (req, res, next) => {
+// Get all tour bookings
+const getAllTourBookings = async (req, res) => {
   try {
     const bookings = await TourBooking.find().sort({ createdAt: -1 });
-    res.status(200).json(bookings);
-  } catch (err) {
-    next(err);
+    res.json(bookings);
+  } catch (error) {
+    console.error('Error getting tour bookings:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-const getTourBookingById = async (req, res, next) => {
+// Get a specific tour booking by ID
+const getTourBookingById = async (req, res) => {
   try {
     const booking = await TourBooking.findById(req.params.id);
     if (!booking) {
-      return res.status(404).json({ message: "Tour booking not found" });
+      return res.status(404).json({ message: 'Tour booking not found' });
     }
-    res.status(200).json(booking);
-  } catch (err) {
-    next(err);
+    res.json(booking);
+  } catch (error) {
+    console.error('Error getting tour booking:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-const updateTourBooking = async (req, res, next) => {
+// Update a tour booking
+const updateTourBooking = async (req, res) => {
   try {
     const booking = await TourBooking.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      req.body,
       { new: true, runValidators: true }
     );
     if (!booking) {
-      return res.status(404).json({ message: "Tour booking not found" });
+      return res.status(404).json({ message: 'Tour booking not found' });
     }
-    res.status(200).json(booking);
-  } catch (err) {
-    next(err);
+    res.json(booking);
+  } catch (error) {
+    console.error('Error updating tour booking:', error);
+    res.status(400).json({ message: error.message });
   }
 };
 
-const deleteTourBooking = async (req, res, next) => {
+// Delete a tour booking
+const deleteTourBooking = async (req, res) => {
   try {
     const booking = await TourBooking.findByIdAndDelete(req.params.id);
     if (!booking) {
-      return res.status(404).json({ message: "Tour booking not found" });
+      return res.status(404).json({ message: 'Tour booking not found' });
     }
-    res.status(200).json({ message: "Tour booking deleted successfully" });
-  } catch (err) {
-    next(err);
+    res.json({ message: 'Tour booking deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting tour booking:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-const getTourBookingsByEmail = async (req, res, next) => {
+// Get bookings by email
+const getTourBookingsByEmail = async (req, res) => {
   try {
-    const bookings = await TourBooking.find({ email: req.params.email }).sort({ createdAt: -1 });
-    res.status(200).json(bookings);
-  } catch (err) {
-    next(err);
+    const bookings = await TourBooking.find({ email: req.params.email })
+      .sort({ createdAt: -1 });
+    res.json(bookings);
+  } catch (error) {
+    console.error('Error getting tour bookings by email:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
