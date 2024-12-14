@@ -118,27 +118,39 @@ export function CarBookingForm({ car, onSubmit, onClose }: CarBookingFormProps) 
     try {
       setLoading(true);
       
+      // Calculate rental duration based on pickup and return dates
+      const pickupDate = new Date(formData.pickupDate);
+      const returnDate = new Date(formData.returnDate);
+      const timeDiff = returnDate.getTime() - pickupDate.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
       const bookingData = {
         ...formData,
         carModel: `${car.brand} ${car.model}`,
-        price: car.pricePerDay,
-        rentalDuration: 1,
+        price: car.pricePerDay * daysDiff, // Calculate total price
+        rentalDuration: daysDiff,
       };
 
       console.log('Sending booking data:', bookingData);
       const response = await carBookingService.createBooking(bookingData);
+      console.log('Booking response:', response);
 
-      redirectToWhatsApp(response);
+      // Only redirect to WhatsApp if the booking was successful
+      if (response && response._id) {
+        redirectToWhatsApp(response);
 
-      await Swal.fire({
-        title: 'Booking Successful!',
-        text: 'Your booking has been confirmed and WhatsApp message has been sent.',
-        icon: 'success',
-        confirmButtonText: 'OK'
-      });
+        await Swal.fire({
+          title: 'Booking Successful!',
+          text: 'Your booking has been confirmed and WhatsApp message has been sent.',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
 
-      resetForm();
-      onClose();
+        resetForm();
+        onClose();
+      } else {
+        throw new Error('Booking response is missing ID');
+      }
 
     } catch (error) {
       console.error('Booking error:', error);
@@ -159,8 +171,8 @@ I would like to book a car with the following details:
       *Pickup Time:* ${formData.pickupTime}
       *Return Time:* ${formData.returnTime}
       *Driver Required:* ${formData.driverRequired ? 'Yes' : 'No'}
-      *Total Price:* KSH ${car.pricePerDay}
-      *Rental Duration:* ${formData.rentalDuration} day(s)
+      *Total Price:* KSH ${car.pricePerDay * Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))}
+      *Rental Duration:* ${Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))} day(s)
       *Name:* ${formData.name}
       *Email:* ${formData.email}
       *Phone:* ${formData.phone}
@@ -182,7 +194,6 @@ I would like to book a car with the following details:
         <TimeInput label="Pickup Time" name="pickupTime" value={formData.pickupTime} onChange={handleChange} required />
         <TimeInput label="Return Time" name="returnTime" value={formData.returnTime} onChange={handleChange} required />
         <CheckboxInput label="Driver Required?" name="driverRequired" value={formData.driverRequired} onChange={handleChange} />
-        <TextInput label="Rental Duration (days)" name="rentalDuration" value={formData.rentalDuration} onChange={handleChange} type="number" required />
         <button type="submit" className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
           Book Now
         </button>
@@ -201,7 +212,7 @@ I would like to book a car with the following details:
           <p><strong>Name:</strong> {formData.name}</p>
           <p><strong>Email:</strong> {formData.email}</p>
           <p><strong>Phone:</strong> {formData.phone}</p>
-          <p><strong>Rental Duration:</strong> {formData.rentalDuration} days</p>
+          <p><strong>Rental Duration:</strong> {Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))} days</p>
         </div>
       </div>
     </div>

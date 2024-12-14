@@ -1,16 +1,29 @@
 const errorHandler = (err, req, res, next) => {
   console.error('Error details:', {
-    error: err.message,
+    name: err.name,
+    message: err.message,
     stack: err.stack,
-    path: req.path,
-    method: req.method,
-    body: req.body
+    code: err.code
   });
 
-  const statusCode = res.statusCode ? res.statusCode : 500;
-  res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      message: 'Validation Error',
+      details: Object.values(err.errors).map(error => error.message)
+    });
+  }
+
+  if (err.name === 'MongoServerError' && err.code === 11000) {
+    return res.status(400).json({
+      message: 'Duplicate key error',
+      field: Object.keys(err.keyValue)[0]
+    });
+  }
+
+  // Default error
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : {}
   });
 };
 
