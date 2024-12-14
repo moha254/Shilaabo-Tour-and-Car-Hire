@@ -82,7 +82,7 @@ const tours: Tour[] = [
     destination: 'Lake Nakuru',
     duration: '1 Day',
     description: 'Witness the spectacular sight of thousands of flamingos and diverse wildlife at Lake Nakuru.',
-    imageUrl: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
+    imageUrl: '/img/birds-of-lake-nakuru-national-park.jpg',
     highlights: [
       'Game Drive',
       'Bird Watching',
@@ -92,7 +92,28 @@ const tours: Tour[] = [
       'Professional Guide'
     ],
     pricePerPerson: 18000
-  }
+  },
+  {
+    id: '6',
+    name: 'Aberdare National Park',
+    type: 'day-tour',
+    destination: 'Aberdare',
+    duration: '1 Day',
+    description: 'Experience the stunning natural beauty of Aberdare National Park, home to waterfalls, hiking trails, and diverse wildlife.',
+    imageUrl: '/img/aberdares.jpg',
+    highlights: [
+      'Game Drive',
+      'Hiking',
+      'Waterfalls',
+      'Bird Watching',
+      'Park Entry Fees',
+      'Transport',
+      'Lunch',
+      'Professional Guide'
+    ],
+    pricePerPerson: 15000
+  },
+
 ];
 
 export function Tours() {
