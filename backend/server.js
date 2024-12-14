@@ -44,6 +44,21 @@ app.use(express.json());  // Parse incoming JSON requests
 app.use("/api/car-bookings", carBookingRoutes);
 app.use("/api/tour-bookings", tourBookingRoutes);
 
+// Function to check and log directory contents
+const checkDirectory = (dirPath) => {
+  console.log(`Checking directory: ${dirPath}`);
+  try {
+    const stats = fs.statSync(dirPath);
+    console.log(`Directory exists: ${stats.isDirectory()}`);
+    const contents = fs.readdirSync(dirPath);
+    console.log(`Contents of ${dirPath}:`, contents);
+    return true;
+  } catch (error) {
+    console.log(`Error checking directory ${dirPath}:`, error.message);
+    return false;
+  }
+};
+
 // Find the dist directory
 const possibleDistPaths = [
   path.join(__dirname, 'dist'),
@@ -52,30 +67,22 @@ const possibleDistPaths = [
   path.join(process.cwd(), '../dist')
 ];
 
+console.log('Current working directory:', process.cwd());
+console.log('__dirname:', __dirname);
+
 let distPath;
-for (const path of possibleDistPaths) {
-  console.log('Checking path:', path);
-  if (fs.existsSync(path)) {
-    distPath = path;
+for (const pathToCheck of possibleDistPaths) {
+  if (checkDirectory(pathToCheck)) {
+    distPath = pathToCheck;
     console.log('Found dist directory at:', distPath);
     break;
   }
 }
 
 if (!distPath) {
-  console.error('Could not find dist directory. Checked paths:', possibleDistPaths);
+  console.error('Could not find dist directory in any of these locations:', possibleDistPaths);
 } else {
-  // List contents of the dist directory
-  try {
-    const files = fs.readdirSync(distPath);
-    console.log('Contents of dist directory:', files);
-  } catch (error) {
-    console.error('Error reading dist directory:', error);
-  }
-}
-
-// Serve static files from the dist directory
-if (distPath) {
+  console.log('Using dist directory:', distPath);
   app.use(express.static(distPath));
 }
 
@@ -86,14 +93,22 @@ app.get('*', (req, res) => {
   }
 
   const indexPath = path.join(distPath, 'index.html');
+  console.log('Request path:', req.path);
   console.log('Attempting to serve:', indexPath);
   
-  if (!fs.existsSync(indexPath)) {
-    console.error('index.html not found at:', indexPath);
-    return res.status(404).send('Frontend build not found. Please check deployment configuration.');
+  try {
+    const indexExists = fs.existsSync(indexPath);
+    console.log('index.html exists:', indexExists);
+    if (!indexExists) {
+      console.error('index.html not found at:', indexPath);
+      return res.status(404).send('Frontend build not found. Please check deployment configuration.');
+    }
+    
+    res.sendFile(indexPath);
+  } catch (error) {
+    console.error('Error serving index.html:', error);
+    res.status(500).send('Error serving application');
   }
-  
-  res.sendFile(indexPath);
 });
 
 // Error handler middleware for handling errors globally
@@ -104,6 +119,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   if (distPath) {
     console.log('Static files being served from:', distPath);
+    checkDirectory(distPath);
   } else {
     console.log('Warning: No static files are being served!');
   }

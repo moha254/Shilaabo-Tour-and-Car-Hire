@@ -5,14 +5,22 @@ services:
     buildCommand: |
       npm install
       npm run build
-      pwd
+      echo "Current directory: $(pwd)"
+      echo "Contents before copy:"
       ls -la
+      echo "Contents of dist:"
+      ls -la dist/
       mkdir -p backend/dist
       cp -rv dist/* backend/dist/
       cd backend
       npm install
+      echo "Contents of backend/dist:"
       ls -la dist
-    startCommand: cd backend && node server.js
+    startCommand: |
+      echo "Starting server from: $(pwd)"
+      echo "Project root contents:"
+      ls -la ..
+      cd backend && node server.js
     envVars:
       - key: MONGO_URI
         sync: false
