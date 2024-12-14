@@ -5,7 +5,9 @@ services:
     buildCommand: |
       npm install
       npm run build
-      cd backend && npm install
+      mv dist backend/
+      cd backend
+      npm install
     startCommand: cd backend && node server.js
     envVars:
       - key: MONGO_URI
@@ -13,5 +15,5 @@ services:
       - key: PORT
         value: 8080
       - key: VITE_API_URL
-        value: https://shilaabo-tour-and-car-hire.onrender.com/api
+        value: https://shilaabo-tour-and-car-hire-1.onrender.com/api
     autoDeploy: true

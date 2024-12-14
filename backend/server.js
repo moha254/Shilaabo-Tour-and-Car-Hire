@@ -20,7 +20,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://shilaabo-tour-and-car-hire.vercel.app',
   'https://shilaabo-car-hire.vercel.app',
-  'https://shilaabo-tour-and-car-hire.onrender.com'
+  'https://shilaabo-tour-and-car-hire-1.onrender.com'
 ];
 
 app.use(cors({
@@ -44,11 +44,11 @@ app.use("/api/car-bookings", carBookingRoutes);
 app.use("/api/tour-bookings", tourBookingRoutes);
 
 // Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, '../dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Error handler middleware for handling errors globally
@@ -57,4 +57,5 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log('Static files being served from:', path.join(__dirname, 'dist'));
 });
