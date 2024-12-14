@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import { Car } from '../../types';
+import { carBookingService } from '../../services/carBooking';
 
 interface CarBookingFormProps {
   car: Car;
+  onSubmit: (formData: any) => Promise<void>;
+  onClose: () => void;
 }
 
 interface InputProps {
   label: string;
   name: string;
-  value: string | boolean;
+  value: string | boolean | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
   required?: boolean;
@@ -74,8 +77,8 @@ const CheckboxInput: React.FC<InputProps> = ({ label, name, value, onChange }) =
   </div>
 );
 
-export function CarBookingForm({ car }: CarBookingFormProps) {
-  const [formData, setFormData] = useState({
+export function CarBookingForm({ car, onSubmit, onClose }: CarBookingFormProps) {
+  const initialFormState = {
     pickupDate: '',
     returnDate: '',
     pickupTime: '',
@@ -84,7 +87,17 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
     name: '',
     email: '',
     phone: '',
-  });
+    carModel: `${car.brand} ${car.model}`,
+    price: car.pricePerDay,
+    rentalDuration: 1,
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
+  const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setFormData(initialFormState);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -96,54 +109,66 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.pickupDate && formData.returnDate && formData.name && formData.email && formData.phone) {
-      try {
-        // Display success message
-        Swal.fire('Booking Success!', 'Your car booking has been processed successfully.', 'success');
-
-        // Redirect to WhatsApp with the booking details
-        redirectToWhatsApp();
-
-        // Clear the form after successful booking
-        setFormData({
-          pickupDate: '',
-          returnDate: '',
-          pickupTime: '',
-          returnTime: '',
-          driverRequired: true,
-          name: '',
-          email: '',
-          phone: '',
-        });
-      } catch (error) {
-        // Display error message if submission fails
-        Swal.fire('Error', 'There was an error processing your booking. Please try again.', 'error');
-        console.error('Error processing booking:', error);
-      }
-    } else {
-      // Display error message if required fields are missing
+    
+    if (!formData.pickupDate || !formData.returnDate || !formData.name || !formData.email || !formData.phone) {
       Swal.fire('Error', 'Please fill out all required fields.', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const bookingData = {
+        ...formData,
+        carModel: `${car.brand} ${car.model}`,
+        price: car.pricePerDay,
+        rentalDuration: 1,
+      };
+
+      console.log('Sending booking data:', bookingData);
+      const response = await carBookingService.createBooking(bookingData);
+
+      redirectToWhatsApp(response);
+
+      await Swal.fire({
+        title: 'Booking Successful!',
+        text: 'Your booking has been confirmed and WhatsApp message has been sent.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      });
+
+      resetForm();
+      onClose();
+
+    } catch (error) {
+      console.error('Booking error:', error);
+      Swal.fire('Error', 'There was an error processing your booking. Please try again.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const redirectToWhatsApp = () => {
+  const redirectToWhatsApp = (booking: any) => {
     const message = `
-      Hello, I would like to book a car with the following details:
-      Car Model: ${car.model}
-      Pickup Date: ${formData.pickupDate}
-      Return Date: ${formData.returnDate}
-      Pickup Time: ${formData.pickupTime}
-      Return Time: ${formData.returnTime}
-      Driver Required: ${formData.driverRequired ? 'Yes' : 'No'}
-      Name: ${formData.name}
-      Email: ${formData.email}
-      Phone: ${formData.phone}
+      Hello Shilaabo Tour and Car Hire,
+
+I would like to book a car with the following details:
+      *Car Model:* ${car.brand} ${car.model}
+      *Pickup Date:* ${formData.pickupDate}
+      *Return Date:* ${formData.returnDate}
+      *Pickup Time:* ${formData.pickupTime}
+      *Return Time:* ${formData.returnTime}
+      *Driver Required:* ${formData.driverRequired ? 'Yes' : 'No'}
+      *Total Price:* KSH ${car.pricePerDay}
+      *Rental Duration:* ${formData.rentalDuration} day(s)
+      *Name:* ${formData.name}
+      *Email:* ${formData.email}
+      *Phone:* ${formData.phone}
     `;
-
-    const whatsappNumber = '+254722814942'; // Replace with your actual WhatsApp number
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
-    window.open(url, '_blank');
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/+254722814942?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -157,6 +182,7 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
         <TimeInput label="Pickup Time" name="pickupTime" value={formData.pickupTime} onChange={handleChange} required />
         <TimeInput label="Return Time" name="returnTime" value={formData.returnTime} onChange={handleChange} required />
         <CheckboxInput label="Driver Required?" name="driverRequired" value={formData.driverRequired} onChange={handleChange} />
+        <TextInput label="Rental Duration (days)" name="rentalDuration" value={formData.rentalDuration} onChange={handleChange} type="number" required />
         <button type="submit" className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
           Book Now
         </button>
@@ -166,7 +192,7 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
       <div className="mt-8 p-4 border border-gray-300 rounded shadow-sm">
         <h2 className="text-xl font-semibold mb-4">Booking Preview</h2>
         <div>
-          <p><strong>Car Model:</strong> {car.model}</p>
+          <p><strong>Car Model:</strong> {car.name}</p>
           <p><strong>Pickup Date:</strong> {formData.pickupDate}</p>
           <p><strong>Return Date:</strong> {formData.returnDate}</p>
           <p><strong>Pickup Time:</strong> {formData.pickupTime}</p>
@@ -175,6 +201,7 @@ export function CarBookingForm({ car }: CarBookingFormProps) {
           <p><strong>Name:</strong> {formData.name}</p>
           <p><strong>Email:</strong> {formData.email}</p>
           <p><strong>Phone:</strong> {formData.phone}</p>
+          <p><strong>Rental Duration:</strong> {formData.rentalDuration} days</p>
         </div>
       </div>
     </div>

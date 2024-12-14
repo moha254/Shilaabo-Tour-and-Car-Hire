@@ -73,7 +73,11 @@ export function TourCard({ tour }: TourCardProps) {
         onClose={() => setIsBookingModalOpen(false)}
         title={`Book ${tour.name}`}
       >
-        <TourBookingForm tour={tour} onSubmit={handleBooking} />
+        <TourBookingForm 
+          tour={tour} 
+          onSubmit={handleBooking}
+          onClose={() => setIsBookingModalOpen(false)} 
+        />
       </Modal>
     </>
   );

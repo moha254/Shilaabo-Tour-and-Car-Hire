@@ -3,7 +3,7 @@ import { Car } from '../../types';
 import { Users, Gauge, Check } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { CarBookingForm } from './CarBookingForm';
-import axios from 'axios';
+import { carBookingService } from '../../services/carBooking';
 import Swal from 'sweetalert2';
 
 interface CarCardProps {
@@ -15,8 +15,8 @@ export function CarCard({ car }: CarCardProps) {
 
   const handleBooking = async (formData: { [key: string]: string | boolean | number }) => {
     try {
-      const response = await axios.post('http://localhost:5000/car-bookings', formData);
-      console.log('Booking successful:', response.data);
+      const response = await carBookingService.createBooking(formData);
+      console.log('Booking successful:', response);
       Swal.fire('Success', 'Your booking has been saved!', 'success');
     } catch (error) {
       console.error('Error saving booking:', error);
@@ -82,7 +82,11 @@ export function CarCard({ car }: CarCardProps) {
         onClose={() => setIsBookingModalOpen(false)}
         title={`Book ${car.brand} ${car.model}`}
       >
-        <CarBookingForm car={car} onSubmit={handleBooking} />
+        <CarBookingForm 
+          car={car} 
+          onSubmit={handleBooking}
+          onClose={() => setIsBookingModalOpen(false)}
+        />
       </Modal>
     </>
   );
