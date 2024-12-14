@@ -3,29 +3,20 @@ services:
     name: shilaabo-car-hire
     env: node
     buildCommand: |
+      cd backend && npm install
+      cd ..
       npm install
       npm run build
-      echo "Current directory: $(pwd)"
-      echo "Contents before copy:"
-      ls -la
-      echo "Contents of dist:"
-      ls -la dist/
-      mkdir -p backend/dist
-      cp -rv dist/* backend/dist/
-      cd backend
-      npm install
-      echo "Contents of backend/dist:"
-      ls -la dist
-    startCommand: |
-      echo "Starting server from: $(pwd)"
-      echo "Project root contents:"
-      ls -la ..
-      cd backend && node server.js
+      cp -r dist backend/
+    startCommand: cd backend && node server.js
     envVars:
       - key: MONGO_URI
-        sync: false
+        value: mongodb+srv://mohamedabukar412:IgA3vUwamvfD5Y9Z@cluster1.0c3ka.mongodb.net/?retryWrites=true&w=majority
       - key: PORT
         value: 8080
+      - key: NODE_ENV
+        value: production
       - key: VITE_API_URL
         value: https://shilaabo-tour-and-car-hire-1.onrender.com/api
+    healthCheckPath: /api/health
     autoDeploy: true

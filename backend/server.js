@@ -40,6 +40,16 @@ app.use(cors({
 
 app.use(express.json());  // Parse incoming JSON requests
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy',
+    mongodb: connectDB.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API routes
 app.use("/api/car-bookings", carBookingRoutes);
 app.use("/api/tour-bookings", tourBookingRoutes);
