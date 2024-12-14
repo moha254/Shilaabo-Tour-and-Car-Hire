@@ -123,38 +123,51 @@ export function CarBookingForm({ car, onSubmit, onClose }: CarBookingFormProps) 
       const returnDate = new Date(formData.returnDate);
       const timeDiff = returnDate.getTime() - pickupDate.getTime();
       const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      if (daysDiff <= 0) {
+        Swal.fire('Error', 'Return date must be after pickup date.', 'error');
+        return;
+      }
       
       const bookingData = {
         ...formData,
         carModel: `${car.brand} ${car.model}`,
-        price: car.pricePerDay * daysDiff, // Calculate total price
+        price: car.pricePerDay * daysDiff,
         rentalDuration: daysDiff,
+        pickupDate: formData.pickupDate, // Ensure these are strings
+        returnDate: formData.returnDate,
+        pickupTime: formData.pickupTime,
+        returnTime: formData.returnTime,
       };
 
       console.log('Sending booking data:', bookingData);
+      
       const response = await carBookingService.createBooking(bookingData);
       console.log('Booking response:', response);
 
-      // Only redirect to WhatsApp if the booking was successful
       if (response && response._id) {
-        redirectToWhatsApp(response);
-
+        // Booking successful
         await Swal.fire({
           title: 'Booking Successful!',
-          text: 'Your booking has been confirmed and WhatsApp message has been sent.',
+          text: 'Your booking has been confirmed. Redirecting to WhatsApp...',
           icon: 'success',
           confirmButtonText: 'OK'
         });
 
+        redirectToWhatsApp(response);
         resetForm();
         onClose();
       } else {
-        throw new Error('Booking response is missing ID');
+        throw new Error('Invalid booking response');
       }
-
-    } catch (error) {
+    } catch (error: any) {
       console.error('Booking error:', error);
-      Swal.fire('Error', 'There was an error processing your booking. Please try again.', 'error');
+      Swal.fire('Error', 
+        error.response?.data?.message || 
+        error.message || 
+        'There was an error processing your booking. Please try again.',
+        'error'
+      );
     } finally {
       setLoading(false);
     }
@@ -162,23 +175,25 @@ export function CarBookingForm({ car, onSubmit, onClose }: CarBookingFormProps) 
 
   const redirectToWhatsApp = (booking: any) => {
     const message = `
-      Hello Shilaabo Tour and Car Hire,
+Hello Shilaabo Tour and Car Hire,
 
 I would like to book a car with the following details:
-      *Car Model:* ${car.brand} ${car.model}
-      *Pickup Date:* ${formData.pickupDate}
-      *Return Date:* ${formData.returnDate}
-      *Pickup Time:* ${formData.pickupTime}
-      *Return Time:* ${formData.returnTime}
-      *Driver Required:* ${formData.driverRequired ? 'Yes' : 'No'}
-      *Total Price:* KSH ${car.pricePerDay * Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))}
-      *Rental Duration:* ${Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))} day(s)
-      *Name:* ${formData.name}
-      *Email:* ${formData.email}
-      *Phone:* ${formData.phone}
+*Car Model:* ${car.brand} ${car.model}
+*Pickup Date:* ${formData.pickupDate}
+*Return Date:* ${formData.returnDate}
+*Pickup Time:* ${formData.pickupTime}
+*Return Time:* ${formData.returnTime}
+*Driver Required:* ${formData.driverRequired ? 'Yes' : 'No'}
+*Total Price:* KSH ${car.pricePerDay * Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))}
+*Rental Duration:* ${Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.pickupDate).getTime()) / (1000 * 3600 * 24))} day(s)
+*Name:* ${formData.name}
+*Email:* ${formData.email}
+*Phone:* ${formData.phone}
+
+Booking Reference: ${booking._id}
     `;
     
-    const encodedMessage = encodeURIComponent(message);
+    const encodedMessage = encodeURIComponent(message.trim());
     const whatsappUrl = `https://wa.me/+254722814942?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
   };
