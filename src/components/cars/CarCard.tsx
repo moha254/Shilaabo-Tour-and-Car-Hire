@@ -64,7 +64,7 @@ export function CarCard({ car }: CarCardProps) {
 
           <div className="mt-6 flex items-center justify-between">
             <div className="text-gray-900">
-              <span className="text-2xl font-bold">KSh {car.pricePerDay.toLocaleString()}</span>
+              <span className="text-2xl font-bold">KSh {car.price.toLocaleString()}</span>
               <span className="text-gray-600">/day</span>
             </div>
             <button

@@ -1,22 +1,29 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
-import Swal from 'sweetalert2';
 
 export function Contact() {
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      // Display success message
-      Swal.fire('Message Sent!', 'Thank you for reaching out to us. We will get back to you soon.', 'success');
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    // Construct WhatsApp message
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const subject = formData.get('subject');
+    const message = formData.get('message');
+    
+    const whatsappMessage = `*New Contact Form Message*%0A
+Name: ${name}%0A
+Email: ${email}%0A
+Subject: ${subject}%0A
+Message: ${message}`;
 
-      // Clear the form after successful submission
-      const form = e.target as HTMLFormElement;
-      form.reset();
-    } catch (error) {
-      // Display error message if submission fails
-      Swal.fire('Error', 'There was an error processing your message. Please try again.', 'error');
-      console.error('Error processing message:', error);
-    }
+    // Redirect to WhatsApp
+    window.open(`https://wa.me/254727372017?text=${whatsappMessage}`, '_blank');
+    
+    // Reset form
+    form.reset();
   };
 
   return (
@@ -27,9 +34,6 @@ export function Contact() {
           <div className="bg-white p-8 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Hidden input for Web3Forms access key */}
-              <input type="hidden" name="access_key" value="23516e32-48ec-41f4-96c2-79d9442d082a" />
-
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Name
@@ -82,7 +86,7 @@ export function Contact() {
                 type="submit"
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
               >
-                Send Message
+                Send Message via WhatsApp
               </button>
             </form>
           </div>
